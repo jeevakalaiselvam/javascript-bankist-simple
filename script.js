@@ -75,13 +75,57 @@ const displayMovements = function (movements) {
       i + 1
     } ${type.toUpperCase()}</div>
           <div class="movements__date">3 days ago</div>
-          <div class="movements__value">${mov}</div>
+          <div class="movements__value">${mov} €</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
 
+//Create usename from user info present
+const createUserName = account => {
+  account.username = account.owner //Create a username property in user objects and store them
+    .toLowerCase()
+    .split(' ')
+    .map(name => name[0])
+    .join('');
+};
+
+//Create username for each user present
+accounts.forEach(account => {
+  createUserName(account);
+});
+
+//Calcuale the total balance present in account
+const calculateBalanceInAccount = movements => {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance} €`;
+};
+
+//Calculate summary for income and outcome
+const calculateSummary = movements => {
+  const income = movements
+    .filter(movement => movement > 0)
+    .reduce((acc, mov) => acc + mov);
+
+  const outcome = movements
+    .filter(movement => movement < 0)
+    .reduce((acc, mov) => acc + mov);
+
+  const interest = movements
+    .filter(movement => movement > 0)
+    .map(deposit => deposit * (1.2 / 100))
+    .filter((int, i, arr) => int >= 1)
+    .reduce((acc, mov) => acc + mov, 0);
+
+  labelSumIn.textContent = `${income} €`;
+  labelSumOut.textContent = `${Math.abs(outcome)} €`;
+  labelSumInterest.textContent = `${Math.abs(interest)} €`;
+};
+
+//Show Account Information after login
 displayMovements(account1.movements);
+calculateBalanceInAccount(account1.movements);
+calculateSummary(account1.movements);
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
