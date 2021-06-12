@@ -7,9 +7,22 @@
 // Data
 const account1 = {
   owner: 'Jeeva Kalaiselvam',
-  movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
+  movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2021-06-01T10:17:24.185Z',
+    '2021-06-08T14:11:59.604Z',
+    '2021-06-09T17:01:17.194Z',
+    '2021-06-11T07:36:17.929Z',
+    '2021-06-12T10:51:36.790Z',
+  ],
+  currency: 'INR',
+  locale: 'en-US', // de-DE
 };
 
 const account2 = {
@@ -17,23 +30,22 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'INR',
+  locale: 'en-US',
 };
 
-const account3 = {
-  owner: 'Boomadevi Kalaiselvam',
-  movements: [200, -200, 340, -300, -20, 50, 400, -460],
-  interestRate: 0.7,
-  pin: 3333,
-};
-
-const account4 = {
-  owner: 'Kalaiselvam Govindasamy',
-  movements: [430, 1000, 700, 50, 90],
-  interestRate: 1,
-  pin: 4444,
-};
-
-const accounts = [account1, account2, account3, account4];
+const accounts = [account1, account2];
 
 // Elements
 const labelWelcome = document.querySelector('.welcome');
@@ -61,23 +73,46 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+//Formatting Date
+function formatMovementDate(date) {
+  const calcDaysPassed = (date1, date2) =>
+    Math.abs(date2 - date1) / (1000 * 60 * 60 * 24);
+
+  const daysPassed = Math.round(calcDaysPassed(new Date(), date));
+  console.log(daysPassed);
+  if (daysPassed === 0) return 'Today';
+  if (daysPassed === 1) return 'Yesterday';
+  if (daysPassed <= 7) return `${daysPassed} days ago`;
+  else {
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+}
+
 //Display all the latest money movements
-const displayMovements = function (movements, sort = false) {
+const displayMovements = function (account, sort = false) {
   containerMovements.innerHTML = '';
 
-  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  const movs = sort
+    ? account.movements.slice().sort((a, b) => a - b)
+    : account.movements;
 
   //Check if the value is positive or negative and associated tag accordingly
   movs.forEach((mov, i) => {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
+
+    const date = new Date(account.movementsDates[i]);
+    const displayDate = formatMovementDate(date);
 
     //Create a transaction div and append at beginning of container
     const html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type.toUpperCase()}</div>
-          <div class="movements__date">3 days ago</div>
-          <div class="movements__value">${mov} ₹</div>
+          <div class="movements__date">${displayDate}</div>
+          <div class="movements__value">${mov.toFixed(2)} ₹</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
@@ -100,7 +135,7 @@ accounts.forEach(account => {
 //Calcuale the total balance present in account
 const calculateBalanceInAccount = account => {
   account.balance = account.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${account.balance} ₹`;
+  labelBalance.textContent = `${account.balance.toFixed(2)} ₹`;
 };
 
 //Calculate summary for income and outcome
@@ -119,19 +154,32 @@ const calculateSummary = account => {
     .filter((interest, i, arr) => interest >= 1)
     .reduce((balance, movement) => balance + movement, 0);
 
-  labelSumIn.textContent = `${income} ₹`;
-  labelSumOut.textContent = `${Math.abs(outcome)} ₹`;
-  labelSumInterest.textContent = `${Math.abs(interest)} ₹`;
+  labelSumIn.textContent = `${income.toFixed(2)} ₹`;
+  labelSumOut.textContent = `${Math.abs(outcome).toFixed(2)} ₹`;
+  labelSumInterest.textContent = `${Math.abs(interest).toFixed(2)} ₹`;
 };
 
 //Current Session declarations
 let currentAccount;
 
+const now = new Date();
+const day = now.getDate();
+const month = now.getMonth() + 1;
+const year = now.getFullYear();
+const hour = now.getHours();
+const min = now.getMinutes();
+labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
+
 const updateUI = currentAccount => {
-  displayMovements(currentAccount.movements);
+  displayMovements(currentAccount);
   calculateBalanceInAccount(currentAccount);
   calculateSummary(currentAccount);
 };
+
+//FAKE LOGIN
+currentAccount = account1;
+updateUI(currentAccount);
+containerApp.style.opacity = 100;
 
 //Event Listeners
 
@@ -168,8 +216,14 @@ btnTransfer.addEventListener('click', e => {
     currentAccount.balance >= amount &&
     receiverAccount.username !== currentAccount.username
   ) {
+    //Add Transfer Amount for both sender and receiver
     currentAccount.movements.push(-amount);
     receiverAccount.movements.push(amount);
+
+    //Add Transfer Date for both sender and receiver
+    currentAccount.movementsDates.push(new Date().toISOString());
+    receiverAccount.movementsDates.push(new Date().toISOString());
+
     updateUI(currentAccount);
   } else {
     console.log('Transfer Invalid');
@@ -200,12 +254,13 @@ btnClose.addEventListener('click', e => {
 btnLoan.addEventListener('click', e => {
   e.preventDefault();
 
-  const amount = Number(inputLoanAmount.value);
+  const amount = Math.floor(inputLoanAmount.value);
   if (
     amount > 0 &&
     currentAccount.movements.some(movement => movement > amount * 0.1)
   ) {
     currentAccount.movements.push(amount);
+    currentAccount.movementsDates.push(new Date().toISOString());
     updateUI(currentAccount);
     inputLoanAmount.value = '';
   }
