@@ -96,36 +96,84 @@ accounts.forEach(account => {
 });
 
 //Calcuale the total balance present in account
-const calculateBalanceInAccount = movements => {
-  const balance = movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${balance} €`;
+const calculateBalanceInAccount = account => {
+  account.balance = account.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${account.balance} €`;
 };
 
 //Calculate summary for income and outcome
-const calculateSummary = movements => {
-  const income = movements
+const calculateSummary = account => {
+  const income = account.movements
     .filter(movement => movement > 0)
-    .reduce((acc, mov) => acc + mov);
+    .reduce((balance, movement) => balance + movement);
 
-  const outcome = movements
+  const outcome = account.movements
     .filter(movement => movement < 0)
-    .reduce((acc, mov) => acc + mov);
+    .reduce((balance, movement) => balance + movement);
 
-  const interest = movements
+  const interest = account.movements
     .filter(movement => movement > 0)
-    .map(deposit => deposit * (1.2 / 100))
-    .filter((int, i, arr) => int >= 1)
-    .reduce((acc, mov) => acc + mov, 0);
+    .map(deposit => deposit * (account.interestRate / 100))
+    .filter((interest, i, arr) => interest >= 1)
+    .reduce((balance, movement) => balance + movement, 0);
 
   labelSumIn.textContent = `${income} €`;
   labelSumOut.textContent = `${Math.abs(outcome)} €`;
   labelSumInterest.textContent = `${Math.abs(interest)} €`;
 };
 
-//Show Account Information after login
-displayMovements(account1.movements);
-calculateBalanceInAccount(account1.movements);
-calculateSummary(account1.movements);
+//Current Session declarations
+let currentAccount;
+
+const updateUI = currentAccount => {
+  displayMovements(currentAccount.movements);
+  calculateBalanceInAccount(currentAccount);
+  calculateSummary(currentAccount);
+};
+
+//Event Listeners
+
+btnLogin.addEventListener('click', e => {
+  e.preventDefault();
+
+  currentAccount = accounts.find(
+    account => account.username === inputLoginUsername.value
+  );
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    console.log('loggedin');
+    //Display UI, Movements, Balance and Summary
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
+    containerApp.style.opacity = 100;
+
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+    updateUI(currentAccount);
+  }
+});
+
+btnTransfer.addEventListener('click', e => {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAccount = accounts.find(
+    account => account.username === inputTransferTo.value
+  );
+  if (
+    amount > 0 &&
+    receiverAccount &&
+    currentAccount.balance >= amount &&
+    receiverAccount.username !== currentAccount.username
+  ) {
+    currentAccount.movements.push(-amount);
+    receiverAccount.movements.push(amount);
+    updateUI(currentAccount);
+  } else {
+    console.log('Transfer Invalid');
+  }
+  inputTransferAmount.value = inputTransferTo.value = '';
+});
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
