@@ -6,28 +6,28 @@
 
 // Data
 const account1 = {
-  owner: 'Jonas Schmedtmann',
+  owner: 'Jeeva Kalaiselvam',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
 };
 
 const account2 = {
-  owner: 'Jessica Davis',
+  owner: 'Sinduja Kalaiselvam',
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
 };
 
 const account3 = {
-  owner: 'Steven Thomas Williams',
+  owner: 'Boomadevi Kalaiselvam',
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
 };
 
 const account4 = {
-  owner: 'Sarah Smith',
+  owner: 'Kalaiselvam Govindasamy',
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
@@ -98,7 +98,7 @@ accounts.forEach(account => {
 //Calcuale the total balance present in account
 const calculateBalanceInAccount = account => {
   account.balance = account.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${account.balance} €`;
+  labelBalance.textContent = `${account.balance} ₹`;
 };
 
 //Calculate summary for income and outcome
@@ -117,9 +117,9 @@ const calculateSummary = account => {
     .filter((interest, i, arr) => interest >= 1)
     .reduce((balance, movement) => balance + movement, 0);
 
-  labelSumIn.textContent = `${income} €`;
-  labelSumOut.textContent = `${Math.abs(outcome)} €`;
-  labelSumInterest.textContent = `${Math.abs(interest)} €`;
+  labelSumIn.textContent = `${income} ₹`;
+  labelSumOut.textContent = `${Math.abs(outcome)} ₹`;
+  labelSumInterest.textContent = `${Math.abs(interest)} ₹`;
 };
 
 //Current Session declarations
@@ -195,14 +195,25 @@ btnClose.addEventListener('click', e => {
   inputCloseUsername.value = inputClosePin.value = '';
 });
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
+btnLoan.addEventListener('click', e => {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+  if (
+    amount > 0 &&
+    currentAccount.movements.some(movement => movement > amount * 0.1)
+  ) {
+    currentAccount.movements.push(amount);
+    updateUI(currentAccount);
+    inputLoanAmount.value = '';
+  }
+});
 
 const currencies = new Map([
   ['USD', 'United States dollar'],
   ['EUR', 'Euro'],
   ['GBP', 'Pound sterling'],
+  ['INR', 'Indian Rupees'],
 ]);
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
