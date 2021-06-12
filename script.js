@@ -62,11 +62,13 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 //Display all the latest money movements
-const displayMovements = function (movements) {
+const displayMovements = function (movements, sort = false) {
   containerMovements.innerHTML = '';
 
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
   //Check if the value is positive or negative and associated tag accordingly
-  movements.forEach((mov, i) => {
+  movs.forEach((mov, i) => {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
     //Create a transaction div and append at beginning of container
@@ -75,7 +77,7 @@ const displayMovements = function (movements) {
       i + 1
     } ${type.toUpperCase()}</div>
           <div class="movements__date">3 days ago</div>
-          <div class="movements__value">${mov} €</div>
+          <div class="movements__value">${mov} ₹</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
@@ -207,6 +209,13 @@ btnLoan.addEventListener('click', e => {
     updateUI(currentAccount);
     inputLoanAmount.value = '';
   }
+});
+
+let sorted = false;
+btnSort.addEventListener('click', e => {
+  e.preventDefault();
+  displayMovements(currentAccount.movements, !sorted);
+  sorted = !sorted;
 });
 
 const currencies = new Map([
