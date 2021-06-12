@@ -87,17 +87,24 @@ function formatMovementDate(date, locale) {
   }
 }
 
+function getLocalCurrencyFormat(amount, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(amount);
+}
+
 //Display all the latest money movements
 const displayMovements = function (account, sort = false) {
   containerMovements.innerHTML = '';
 
-  const movs = sort
+  const movements = sort
     ? account.movements.slice().sort((a, b) => a - b)
     : account.movements;
 
   //Check if the value is positive or negative and associated tag accordingly
-  movs.forEach((mov, i) => {
-    const type = mov > 0 ? 'deposit' : 'withdrawal';
+  movements.forEach((movement, i) => {
+    const type = movement > 0 ? 'deposit' : 'withdrawal';
 
     const date = new Date(account.movementsDates[i]);
     const displayDate = formatMovementDate(date, account.locale);
@@ -108,7 +115,11 @@ const displayMovements = function (account, sort = false) {
       i + 1
     } ${type.toUpperCase()}</div>
           <div class="movements__date">${displayDate}</div>
-          <div class="movements__value">${mov.toFixed(2)} ₹</div>
+          <div class="movements__value">${getLocalCurrencyFormat(
+            movement,
+            account.locale,
+            account.currency
+          )}</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
@@ -131,7 +142,11 @@ accounts.forEach(account => {
 //Calcuale the total balance present in account
 const calculateBalanceInAccount = account => {
   account.balance = account.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${account.balance.toFixed(2)} ₹`;
+  labelBalance.textContent = `${getLocalCurrencyFormat(
+    account.balance,
+    account.locale,
+    account.currency
+  )}`;
 };
 
 //Calculate summary for income and outcome
