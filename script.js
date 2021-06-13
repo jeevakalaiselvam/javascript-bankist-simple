@@ -98,6 +98,7 @@ function getLocalCurrencyFormat(amount, locale, currency) {
 const displayMovements = function (account, sort = false) {
   containerMovements.innerHTML = '';
 
+  console.log(account.movements);
   const movements = sort
     ? account.movements.slice().sort((a, b) => a - b)
     : account.movements;
@@ -171,7 +172,7 @@ const calculateSummary = account => {
 };
 
 //Current Session declarations
-let currentAccount;
+let currentAccount, loginTimer;
 
 const now = new Date();
 const day = now.getDate();
@@ -181,16 +182,34 @@ const hour = now.getHours();
 const min = now.getMinutes();
 labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
 
+const logoutSession = () => {
+  containerApp.style.opacity = 0;
+};
+
+let timer;
+//Start logout timer
+const startLogoutTimer = () => {
+  let time = 300;
+  const tick = () => {
+    let minutes = Math.trunc(time / 60);
+    let seconds = time % 60 > 0 ? String(time % 60) : '00';
+    labelTimer.textContent = `0${minutes}:${seconds}`;
+
+    if (time === 0) {
+      logoutSession();
+    }
+    time -= 1;
+  };
+  tick(); //Initiate the function first
+  timer = setInterval(tick, 1000); //Run the timer until logout time threshold is met
+  return timer;
+};
+
 const updateUI = currentAccount => {
   displayMovements(currentAccount);
   calculateBalanceInAccount(currentAccount);
   calculateSummary(currentAccount);
 };
-
-//FAKE LOGIN
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
 
 //Event Listeners
 
@@ -227,6 +246,11 @@ btnLogin.addEventListener('click', e => {
 
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
+
+    //Check if old timer is already active from another session and clear it
+    if (loginTimer) clearInterval(loginTimer);
+    loginTimer = startLogoutTimer();
+
     updateUI(currentAccount);
   }
 });
@@ -256,6 +280,10 @@ btnTransfer.addEventListener('click', e => {
     console.log('Transfer Invalid');
   }
   inputTransferAmount.value = inputTransferTo.value = '';
+
+  //Reset timer for session
+  clearInterval(timer);
+  timer = startLogoutTimer();
 });
 
 btnClose.addEventListener('click', e => {
@@ -290,13 +318,17 @@ btnLoan.addEventListener('click', e => {
     currentAccount.movementsDates.push(new Date().toISOString());
     updateUI(currentAccount);
     inputLoanAmount.value = '';
+
+    //Reset timer for session
+    clearInterval(timer);
+    timer = startLogoutTimer();
   }
 });
 
 let sorted = false;
 btnSort.addEventListener('click', e => {
   e.preventDefault();
-  displayMovements(currentAccount.movements, !sorted);
+  displayMovements(currentAccount, !sorted);
   sorted = !sorted;
 });
 
@@ -310,3 +342,14 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
+
+//FAKE LOGIN
+const mockLogin = () => {
+  currentAccount = account1;
+  updateUI(currentAccount);
+  containerApp.style.opacity = 100;
+  //Check if old timer is already active from another session and clear it
+  if (loginTimer) clearInterval(loginTimer);
+  loginTimer = startLogoutTimer();
+};
+mockLogin();
