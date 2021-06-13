@@ -2,6 +2,10 @@
 
 A simple minimalistic banking application mock using javascript
 
+# Live Version
+
+[CHECK APPLICATION](https://jeevakalaiselvam.github.io/javascript-indianbank-simple/)
+
 # Configurations
 
     1. username: jk , pin: 1111
